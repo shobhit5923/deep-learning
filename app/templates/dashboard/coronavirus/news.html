@@ -1,0 +1,22 @@
+{% extends "dashboard/coronavirus/layout.html" %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card news-card">
+                <div class="card-header">
+                    <h5 class="card-header-text">Latest News: ({{updated}})</h5>
+                </div>
+                <div class="card-block accordion-block color-accordion-block">
+                    <div class="color-accordion" id="color-accordion">
+                        {% for article in news %}
+                                <a class="accordion-msg bg-dark-primary b-none m-b-10">{{loop.index}}. {{article[0]}}</a>
+                                <div class="accordion-desc">
+                                    Source: <a href={{article[1]}} class ="news-links" target="_blank">{{article[1]}}</a>
+                                </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
