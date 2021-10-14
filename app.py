@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jun 11 22:34:20 2020
+
+@author: Krish Naik
+"""
+
 from __future__ import division, print_function
 # coding=utf-8
 import sys
@@ -7,32 +14,25 @@ import re
 import numpy as np
 
 # Keras
-from keras.applications.imagenet_utils import preprocess_input, decode_predictions
-from keras.models import load_model
-from keras.preprocessing import image
+from tensorflow.keras.applications.imagenet_utils import preprocess_input, decode_predictions
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 
 # Flask utils
 from flask import Flask, redirect, url_for, request, render_template
 from werkzeug.utils import secure_filename
-from gevent.pywsgi import WSGIServer
+#from gevent.pywsgi import WSGIServer
 
 # Define a flask app
 app = Flask(__name__)
 
 # Model saved with Keras model.save()
-MODEL_PATH = 'models/model_resnet.h5'
+MODEL_PATH ='model_resnet50.h5'
 
 # Load your trained model
 model = load_model(MODEL_PATH)
-model._make_predict_function()          # Necessary
-# print('Model loaded. Start serving...')
 
-# You can also use pretrained model from Keras
-# Check https://keras.io/applications/
-#from keras.applications.resnet50 import ResNet50
-#model = ResNet50(weights='imagenet')
-#model.save('')
-print('Model loaded. Check http://127.0.0.1:5000/')
+
 
 
 def model_predict(img_path, model):
@@ -41,13 +41,23 @@ def model_predict(img_path, model):
     # Preprocessing the image
     x = image.img_to_array(img)
     # x = np.true_divide(x, 255)
+    ## Scaling
+    x=x/255
     x = np.expand_dims(x, axis=0)
+   
 
-    # Be careful how your trained model deals with the input
-    # otherwise, it won't make correct prediction!
-    x = preprocess_input(x, mode='caffe')
+   
 
     preds = model.predict(x)
+    preds=np.argmax(preds, axis=1)
+    if preds==0:
+        preds="The Car IS Audi"
+    elif preds==1:
+        preds="The Car is Lamborghini"
+    else:
+        preds="The Car Is Mercedes"
+    
+    
     return preds
 
 
@@ -71,15 +81,10 @@ def upload():
 
         # Make prediction
         preds = model_predict(file_path, model)
-
-        # Process your result for human
-        # pred_class = preds.argmax(axis=-1)            # Simple argmax
-        pred_class = decode_predictions(preds, top=1)   # ImageNet Decode
-        result = str(pred_class[0][0][1])               # Convert to string
+        result=preds
         return result
     return None
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-
